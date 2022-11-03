@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>못만들겠다...</title>
+    <style>
+        body{margin: 0px;}
+
+        
+        #stage{
+            width: 1320px;
+            height: 840px;
+            margin: auto;
+            background-color: bisque;
+            position: relative;
+            overflow: hidden;
+        }
+
+        
+        
+
+    </style>
+    <script src="../lib/util.js"></script>
+    <script src="./ImgObject.js"></script>
+    <script src="./DivObject.js"></script>
+    <script src="./Map.js"></script>
+    <script src="./Wall.js"></script>
+    <script src="./You.js"></script>
+    <script src="./LeftSensor.js"></script>
+    <script src="./RightSensor.js"></script>
+    <script src="./UpSensor.js"></script>
+    <script src="./DownSensor.js"></script>
+    <script src="./Enemy.js"></script>
+    <script src="./Bullet.js"></script>
+    <script src="./EnemyBullet.js"></script>
+    <script src="./Block.js"></script>
+    <script src="./Button.js"></script>
+    <script src="./BDS.js"></script>
+    <script src="./BLS.js"></script>
+    <script src="./BRS.js"></script>
+    <script src="./BUS.js"></script>
+    <script>
+        let stage;
+        let you;
+        const OBJECT_SIZE=120;
+        const BULLET_SIZE=60;
+        const ENEMY_BSIZE=30;
+        let map;
+        let wallArray=[];
+        let sensorArray=new Array(4);
+        let BSArray=[];
+        let bulletArray=[];
+        let aim=0;
+         //적군의 명단을 담을 배열
+         let enemyNameArray=["e1.png","e2.png","e3.png","e4.png","e5.png"];
+        //적군 객체 자체를 담을 배열
+        let enemyArray=[];
+        let enemyBulletArray=[];
+        let blockArray=[];
+        let buttonArray=[];
+        let blockFlag=true;
+        let st;
+
+
+        function createMap(){
+            //constructor(container, color, x, y, width, height, velX, velY)
+            map=new Map(stage, "cyan", 0, 0, OBJECT_SIZE*22, OBJECT_SIZE*14, 0, 0);
+        }
+
+        //벽 생성
+        function createWall(){
+            for(let i=0; i<14; i++){ //14층
+                let array=[];
+                for(let j=0; j<22; j++){ //22호
+                    //constructor(container, src, x, y, width, height, velX, velY)
+                    if(i==0 || i==13 || j==0 ||j==21 || i==5 || (j==11&& i>1 && j==11&&i<5) || (j==9 && i<4) || i==10 ||(j==9&&i==7)||(j==9&&i==8)||(j==9&&i==9)){
+                    let wall= new Wall(map.div, "../images/wall.png", OBJECT_SIZE*j ,OBJECT_SIZE*i, OBJECT_SIZE, OBJECT_SIZE, 0, 0);
+                    array.push(wall);
+                    }
+                }
+                wallArray.push(array); //6번 푸시함
+            }
+        }
+
+        function createYou(){
+            //constructor(container, src, x, y, width, height, velX, velY)
+            you= new You(map.div,"../images/mon.jfif",OBJECT_SIZE,OBJECT_SIZE,OBJECT_SIZE,OBJECT_SIZE,0,0);
+        }
+
+        function createEnemy(){ 
+            console.log(OBJECT_SIZE*9);
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*8, OBJECT_SIZE*1,OBJECT_SIZE,OBJECT_SIZE, 0, 0,5));
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*8, OBJECT_SIZE*3,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*19, OBJECT_SIZE*2,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*19, OBJECT_SIZE*4,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                enemyArray.push(new Enemy(map.div, "../images/snakeHead.jpg", OBJECT_SIZE*20, OBJECT_SIZE*3,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 10));
+                //enemyArray.push(new Enemy(map.div, "../images/bug.png", OBJECT_SIZE*8, OBJECT_SIZE*6,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                //enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*4, OBJECT_SIZE*12,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                //enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*5, OBJECT_SIZE*10,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*16, OBJECT_SIZE*7,OBJECT_SIZE,OBJECT_SIZE, 0, 0 ,5));
+                enemyArray.push(new Enemy(map.div, "../images/enemies/"+enemyNameArray[3], OBJECT_SIZE*16, OBJECT_SIZE*8,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));
+                enemyArray.push(new Enemy(map.div, "../images/plane.png", OBJECT_SIZE*20, OBJECT_SIZE*12,OBJECT_SIZE,OBJECT_SIZE, 0, 0, 5));    
+        }
+
+        function createBlockAndButton(){
+            if(blockFlag==true&&enemyArray.length<2){
+                for(let i=0; i<2;i++){
+                    blockArray.push(new Block(map.div, "../images/brick3.png", OBJECT_SIZE*(11+i), OBJECT_SIZE*(7+2*i),OBJECT_SIZE,OBJECT_SIZE, 0, 0));
+                }
+                for(let i=0; i<3;i++){
+                    buttonArray.push(new Button(map.div, "../images/button1.png", OBJECT_SIZE*(10), OBJECT_SIZE*(7+2*i),OBJECT_SIZE,OBJECT_SIZE, 0, 0));
+                }
+                blockFlag=false;
+
+
+            }
+        }
+
+
+        function openDoor(){ //맨 위쪽 스테이지의 몬스터를 모두 잡으면 벽이 열린다.
+            if(enemyArray.length<4){
+                wallArray[5][20].x=2280;
+                wallArray[5][20].y=OBJECT_SIZE*6;
+            }
+        }
+        
+
+        function moveMapX(speed){
+             if(parseFloat(you.x)<5*OBJECT_SIZE){
+                map.x=0;
+                map.velX=0;
+            } else if(map.width-6*OBJECT_SIZE<parseFloat(you.x)){
+                map.x=-OBJECT_SIZE*11;
+                map.velX=0;
+            } else if(5*OBJECT_SIZE<=parseFloat(you.x) && parseFloat(you.x) <=map.width-6*OBJECT_SIZE){
+                map.velX=-speed;
+                map.x=5*OBJECT_SIZE-you.x;
+            } else{
+                map.velX=0;
+            }            
+        }
+        function moveX(speed){
+            you.velX=speed;
+        }
+        function moveMapY(speed){            
+            if(parseFloat(you.y)<3*OBJECT_SIZE){
+                map.y=0;
+                map.velY=0;
+            } else if(map.height-4*OBJECT_SIZE<parseFloat(you.y)){
+                map.y=-OBJECT_SIZE*7;
+                map.velY=0;
+            } else if(3*OBJECT_SIZE<=parseFloat(you.y) && parseFloat(you.y) <=map.height-4*OBJECT_SIZE){
+                map.y=3*OBJECT_SIZE-you.y;
+                map.velY=-speed;
+            } else{
+                map.velY=0;
+            }
+        }
+        function moveY(speed){
+            you.velY=speed;
+        }
+
+        function water(){
+            //constructor(container, src, x, y, width, height, velX, velY)
+            let bullet;
+            if(aim==0){
+                bullet=new Bullet(map.div, "../images/water.png", you.x-BULLET_SIZE,you.y+0.5*BULLET_SIZE, BULLET_SIZE, BULLET_SIZE, -10, 0);
+            } else if(aim==1){
+                bullet=new Bullet(map.div, "../images/water.png", you.x+0.5*BULLET_SIZE,you.y-BULLET_SIZE, BULLET_SIZE, BULLET_SIZE, 0, -10);            
+            } else if(aim==2){
+                bullet=new Bullet(map.div, "../images/water.png", you.x+you.width,you.y+0.5*BULLET_SIZE, BULLET_SIZE, BULLET_SIZE, 10, 0);            
+            } else if(aim==3){
+                bullet=new Bullet(map.div, "../images/water.png", you.x+0.5*BULLET_SIZE,you.y+you.height, BULLET_SIZE, BULLET_SIZE, 0, 10);
+            }
+            bulletArray.push(bullet);
+        }
+
+        function createSensor(){
+            sensorArray[0]=new UpSensor(map.div, "red", you.x+10, you.y, you.width*(80/100), 5);//상 
+            sensorArray[1]=new DownSensor(map.div, "blue", you.x+10, you.y+you.height-5, you.width*(80/100), 5);//하 
+            sensorArray[2]=new LeftSensor(map.div, "black", you.x, you.y+10, 5, you.height*(80/100));//좌
+            sensorArray[3]=new RightSensor(map.div, "purple", you.x+you.width-5, you.y+10, 5, you.height*(80/100));//우
+        } //센서를 map에 부착
+
+        function blockSensor(){
+
+            if(blockFlag==false){
+                for(let i=0;i<blockArray.length;i++){ //위 아래 왼쪽 오른쪽
+                    let Tarray=[];
+                    //constructor(container, color, x, y, width, height, velX, velY, host)
+                    Tarray.push(new BUS(map.div, "red", blockArray[i].x, blockArray[i].y, blockArray[i].width*(80/100), 5, 0, 0, blockArray[i]));
+                    Tarray.push(new BDS(map.div, "blue", blockArray[i].x, blockArray[i].y+blockArray[i].height-5, blockArray[i].width*(80/100), 5,0,0, blockArray[i]));
+                    Tarray.push(new BLS(map.div, "black", blockArray[i].x, blockArray[i].y, 5, blockArray[i].height*(80/100),0,0, blockArray[i]));//좌
+                    Tarray.push(new BRS(map.div, "yellow", blockArray[i].x+blockArray[i].width-5, blockArray[i].y, 5, blockArray[i].height*(80/100),0,0, blockArray[i]));//우
+                    BSArray.push(Tarray);
+                }
+                clearInterval(st);
+            }
+        }
+
+        function gameLoop(){
+
+            map.tick();
+            map.render();
+            //주인공 루프 호출
+            you.tick();
+            you.render();
+
+            for(let i=0; i<bulletArray.length;i++){ //총알이 있을 때만..
+                bulletArray[i].tick();
+                bulletArray[i].render();
+            }
+
+            for(let i=0;i<sensorArray.length;i++){
+                sensorArray[i].tick();
+                sensorArray[i].render();
+            }
+            if(blockFlag==false){
+                for(let i=0;i<blockArray.length;i++){
+                    blockArray[i].tick();
+                    blockArray[i].render();
+                }
+                for(let i=0;i<BSArray.length;i++){
+                    for(let j=0;j<BSArray[i].length;j++){
+                        BSArray[i][j].tick();
+                        BSArray[i][j].render();
+                    }
+                }
+            }
+
+            for(let i=0;i<enemyArray.length;i++){
+                enemyArray[i].tick();
+                enemyArray[i].render();
+                enemyArray[i].attackCheck();
+                enemyArray[i].attack();
+            }
+
+            for(let i=0; i<enemyBulletArray.length;i++){ //총알이 있을 때만..
+                enemyBulletArray[i].tick();
+                enemyBulletArray[i].render();
+            }
+            for(let i=0; i<wallArray.length;i++){
+                for(let j=0;j<wallArray[i].length;j++){
+                wallArray[i][j].tick();
+                wallArray[i][j].render();
+                }
+            }
+            openDoor();
+            createBlockAndButton();
+
+
+            //console.log(you.velY);
+            setTimeout("gameLoop()", 10);
+        }
+
+        function init(){
+            stage=document.getElementById("stage");
+            createMap();
+            createWall();
+            createYou();
+            createSensor();
+            createEnemy();
+            blockSensor();
+            st=setInterval("blockSensor()", 10);
+
+            //gameLoop(); 시작
+            gameLoop();
+
+            document.body.addEventListener("keydown", function(e){
+                console.log(e.keyCode);
+                switch(e.keyCode){
+                    case 37:moveX(-5);moveMapX(-5); aim=0;break;
+                    case 38:moveY(-5);moveMapY(-5);aim=1;break;
+                    case 39:moveX(5);moveMapX(5);aim=2;break;
+                    case 40:moveY(5);moveMapY(5);aim=3;break;
+                    case 32:water();break; //keyclick으로 바꾸자..
+                }
+            });
+            document.body.addEventListener("keyup", function(e){
+                switch(e.keyCode){
+                    case 37:moveX(0);moveMapX(0);break;
+                    case 38:moveY(0);moveMapY(0);break;
+                    case 39:moveX(0);moveMapX(0);break;
+                    case 40:moveY(0);moveMapY(0);break;
+                }
+            });
+        }
+
+        window.addEventListener("load", function(){
+            init();
+        });
+        
+    </script>
+</head>
+<body>
+        <div id="stage">
+        </div>
+</body>
+</html>
